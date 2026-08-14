@@ -1,0 +1,5 @@
+/build/
+/iso_root/
+/third_party/
+*.iso
+.DS_Store
