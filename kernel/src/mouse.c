@@ -61,6 +61,27 @@ void mouse_feed(uint8_t b) {
     dirty = 1;
 }
 
+void mouse_usb_rel(int dx, int dy, uint8_t btn) {
+    mx += dx;
+    my += dy;
+    if (mx < 0) {
+        mx = 0;
+    }
+    if (my < 0) {
+        my = 0;
+    }
+    int32_t w = (int32_t)gfx_width();
+    int32_t h = (int32_t)gfx_height();
+    if (w > 0 && mx >= w) {
+        mx = w - 1;
+    }
+    if (h > 0 && my >= h) {
+        my = h - 1;
+    }
+    buttons = btn & 0x07;
+    dirty = 1;
+}
+
 struct mouse_state mouse_poll(void) {
     struct mouse_state s;
     irq_disable();

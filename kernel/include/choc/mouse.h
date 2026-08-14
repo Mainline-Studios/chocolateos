@@ -11,4 +11,5 @@ struct mouse_state {
 
 void mouse_init(void);
 void mouse_feed(uint8_t byte);
+void mouse_usb_rel(int dx, int dy, uint8_t btn);
 struct mouse_state mouse_poll(void);

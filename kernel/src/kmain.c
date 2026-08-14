@@ -10,6 +10,7 @@
 #include <choc/keyboard.h>
 #include <choc/mouse.h>
 #include <choc/ps2.h>
+#include <choc/usb.h>
 #include <choc/pmm.h>
 #include <choc/shell.h>
 #include <choc/cxx.h>
@@ -93,6 +94,7 @@ void kmain(void) {
     mouse_init();
     ps2_init();
     irq_enable();
+    usb_init();
 
     cxx_call_constructors();
     cxx_banner();

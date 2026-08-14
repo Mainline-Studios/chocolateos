@@ -72,7 +72,11 @@ iso: $(KERNEL) $(LIMINE_DIR)/limine.h
 		iso_root -o $(ISO)
 	$(LIMINE_DIR)/limine bios-install $(ISO)
 
-QEMU_FLAGS := -m 256M -serial stdio -no-reboot -no-shutdown
+QEMU_FLAGS := -m 256M -serial stdio -no-reboot -no-shutdown \
+	-device usb-ehci,id=ehci \
+	-device qemu-xhci,id=xhci \
+	-device usb-kbd,bus=xhci.0 \
+	-device usb-mouse,bus=xhci.0
 
 run: iso
 	qemu-system-x86_64 $(QEMU_FLAGS) -cdrom $(ISO)

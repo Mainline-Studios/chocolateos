@@ -8,7 +8,8 @@ A homemade x86_64 operating system. The kernel is written in C, with a little C+
 - GDT, IDT, PIC, PIT timer, PS/2 keyboard
 - Memory map from the bootloader
 - A kernel shell, plus a graphical desktop: type `choc` to open it
-- PS/2 mouse, windows (Notes, About), taskbar, and a Choc start menu
+- USB 2.0 (EHCI) and USB 3.x (xHCI) host drivers with HID keyboard/mouse
+- PS/2 fallback, plus serial input in the QEMU terminal
 
 ## Build (macOS)
 

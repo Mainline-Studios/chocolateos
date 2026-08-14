@@ -1,4 +1,5 @@
 #include <choc/keyboard.h>
+#include <choc/usb.h>
 #include <choc/serial.h>
 #include <choc/io.h>
 
@@ -40,6 +41,10 @@ void keyboard_init(void) {
     ext = 0;
 }
 
+void keyboard_push(char c) {
+    push(c);
+}
+
 void keyboard_feed(uint8_t sc) {
     if (sc == 0xE0) {
         ext = 1;
@@ -75,6 +80,7 @@ void keyboard_feed(uint8_t sc) {
 }
 
 int keyboard_getchar(void) {
+    usb_poll();
     if (head != tail) {
         char c = buf[tail];
         tail = (tail + 1) % BUF_SIZE;
