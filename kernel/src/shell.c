@@ -7,6 +7,7 @@
 #include <choc/string.h>
 #include <choc/io.h>
 #include <choc/types.h>
+#include <choc/gui.h>
 
 static void prompt(void) {
     kprintf("choc> ");
@@ -19,6 +20,7 @@ static void cmd_help(void) {
     kprintf("  clear    clear the screen\n");
     kprintf("  mem      dump the memory map\n");
     kprintf("  ticks    PIT tick counter\n");
+    kprintf("  choc     start the graphical desktop\n");
     kprintf("  reboot   triple-fault reboot (QEMU)\n");
 }
 
@@ -55,6 +57,10 @@ static void run_line(char *line) {
         pmm_dump();
     } else if (strcmp(line, "ticks") == 0) {
         kprintf("%llu\n", pit_ticks());
+    } else if (strcmp(line, "choc") == 0) {
+        kprintf("starting desktop...\n");
+        gui_run();
+        kprintf("back at the terminal. type 'choc' to open the GUI again.\n");
     } else if (strcmp(line, "reboot") == 0) {
         cmd_reboot();
     } else {
@@ -65,7 +71,7 @@ static void run_line(char *line) {
 void shell_run(void) {
     char line[128];
     uint32_t len = 0;
-    kprintf("\nType 'help' for commands.\n");
+    kprintf("\nType 'choc' for the desktop, or 'help' for commands.\n");
     prompt();
     for (;;) {
         __asm__ volatile("hlt");

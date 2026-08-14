@@ -8,6 +8,7 @@
 #include <choc/pic.h>
 #include <choc/pit.h>
 #include <choc/keyboard.h>
+#include <choc/mouse.h>
 #include <choc/pmm.h>
 #include <choc/shell.h>
 #include <choc/cxx.h>
@@ -88,6 +89,7 @@ void kmain(void) {
     pic_init();
     pit_init(100);
     keyboard_init();
+    mouse_init();
     irq_enable();
 
     cxx_call_constructors();

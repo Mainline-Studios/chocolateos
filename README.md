@@ -7,7 +7,8 @@ A homemade x86_64 operating system. The kernel is written in C, with a little C+
 - Framebuffer console (chocolate-on-cream) and COM1 serial output
 - GDT, IDT, PIC, PIT timer, PS/2 keyboard
 - Memory map from the bootloader
-- A tiny kernel shell: `help`, `about`, `clear`, `mem`, `ticks`, `reboot`
+- A kernel shell, plus a graphical desktop: type `choc` to open it
+- PS/2 mouse, windows (Notes, About), taskbar, and a Choc start menu
 
 ## Build (macOS)
 
@@ -18,7 +19,7 @@ make
 make run
 ```
 
-Click the QEMU window so keyboard input goes to the guest. Serial output also appears in the terminal.
+Click the QEMU window so keyboard and mouse go to the guest. At `choc>`, type `choc` to start the desktop. Esc or **Exit desktop** in the Choc menu returns to the terminal.
 
 Headless (serial only; framebuffer still exists but you will not see it):
 

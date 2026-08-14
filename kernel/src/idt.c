@@ -2,6 +2,7 @@
 #include <choc/pic.h>
 #include <choc/pit.h>
 #include <choc/keyboard.h>
+#include <choc/mouse.h>
 #include <choc/kprintf.h>
 #include <choc/io.h>
 
@@ -47,6 +48,8 @@ extern void isr_stub_20(void);
 extern void isr_stub_21(void);
 extern void isr_stub_32(void);
 extern void isr_stub_33(void);
+extern void isr_stub_39(void);
+extern void isr_stub_44(void);
 
 static void set_gate(int vec, void (*handler)(void), uint8_t flags) {
     uint64_t addr = (uint64_t)handler;
@@ -73,6 +76,8 @@ void idt_init(void) {
     }
     set_gate(32, isr_stub_32, 0x8E);
     set_gate(33, isr_stub_33, 0x8E);
+    set_gate(39, isr_stub_39, 0x8E);
+    set_gate(44, isr_stub_44, 0x8E);
 
     idtr.limit = sizeof(idt) - 1;
     idtr.base = (uint64_t)&idt;
@@ -88,6 +93,15 @@ void interrupt_dispatch(struct interrupt_frame *frame) {
     if (frame->vector == 33) {
         keyboard_irq();
         pic_eoi(1);
+        return;
+    }
+    if (frame->vector == 39) {
+        pic_eoi(7);
+        return;
+    }
+    if (frame->vector == 44) {
+        mouse_irq();
+        pic_eoi(12);
         return;
     }
     kprintf("\n*** exception vector %llu error=0x%llx rip=%p\n",

@@ -30,9 +30,9 @@ void pic_init(void) {
     outb(PIC1_DATA, mask1);
     outb(PIC2_DATA, mask2);
 
-    /* Unmask timer and keyboard; mask everything else. */
-    outb(PIC1_DATA, 0xFC);
-    outb(PIC2_DATA, 0xFF);
+    /* Timer, keyboard, cascade, mouse. */
+    outb(PIC1_DATA, 0xF8);
+    outb(PIC2_DATA, 0xEF);
 }
 
 void pic_eoi(uint8_t irq) {

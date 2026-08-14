@@ -39,6 +39,8 @@ ISR_NOERR 20
 ISR_ERR   21
 ISR_NOERR 32
 ISR_NOERR 33
+ISR_NOERR 39
+ISR_NOERR 44
 
 .extern interrupt_dispatch
 
