@@ -19,7 +19,7 @@ make
 make run
 ```
 
-Click the QEMU window so keyboard and mouse go to the guest. At `choc>`, type `choc` to start the desktop. Esc or **Exit desktop** in the Choc menu returns to the terminal.
+Click the **QEMU window** (not the terminal) so it has focus, then type. The shell also accepts keys from the serial console in that same terminal if the window is not focused.
 
 Headless (serial only; framebuffer still exists but you will not see it):
 

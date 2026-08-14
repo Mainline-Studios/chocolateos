@@ -10,5 +10,5 @@ struct mouse_state {
 };
 
 void mouse_init(void);
-void mouse_irq(void);
+void mouse_feed(uint8_t byte);
 struct mouse_state mouse_poll(void);

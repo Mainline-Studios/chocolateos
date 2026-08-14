@@ -4,4 +4,4 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define CHOCOLATEOS_VERSION "0.1.0"
+#define CHOCOLATEOS_VERSION "0.2.1"

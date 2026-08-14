@@ -1,14 +1,14 @@
 #include <choc/keyboard.h>
+#include <choc/serial.h>
 #include <choc/io.h>
 
-#define KBD_DATA 0x60
-#define KBD_STATUS 0x64
 #define BUF_SIZE 256
 
 static volatile char buf[BUF_SIZE];
 static volatile uint32_t head;
 static volatile uint32_t tail;
 static int shift;
+static int ext;
 
 static const char map[128] = {
     0, 27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
@@ -37,32 +37,48 @@ static void push(char c) {
 void keyboard_init(void) {
     head = tail = 0;
     shift = 0;
+    ext = 0;
 }
 
-void keyboard_irq(void) {
-    uint8_t sc = inb(KBD_DATA);
+void keyboard_feed(uint8_t sc) {
+    if (sc == 0xE0) {
+        ext = 1;
+        return;
+    }
     if (sc == 0x2A || sc == 0x36) {
         shift = 1;
+        ext = 0;
         return;
     }
     if (sc == 0xAA || sc == 0xB6) {
         shift = 0;
+        ext = 0;
         return;
     }
     if (sc & 0x80) {
+        ext = 0;
         return;
     }
-    char c = shift ? map_shift[sc] : map[sc];
-    if (c) {
-        push(c);
+    if (ext) {
+        ext = 0;
+        if (sc == 0x4B) {
+            push('\b');
+        }
+        return;
+    }
+    if (sc < 128) {
+        char c = shift ? map_shift[sc] : map[sc];
+        if (c) {
+            push(c);
+        }
     }
 }
 
 int keyboard_getchar(void) {
-    if (head == tail) {
-        return -1;
+    if (head != tail) {
+        char c = buf[tail];
+        tail = (tail + 1) % BUF_SIZE;
+        return (unsigned char)c;
     }
-    char c = buf[tail];
-    tail = (tail + 1) % BUF_SIZE;
-    return (unsigned char)c;
+    return serial_getchar();
 }

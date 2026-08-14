@@ -31,3 +31,14 @@ void serial_write_str(const char *s) {
         serial_write(*s++);
     }
 }
+
+int serial_getchar(void) {
+    if (!(inb(COM1 + 5) & 0x01)) {
+        return -1;
+    }
+    uint8_t c = inb(COM1);
+    if (c == '\r') {
+        return '\n';
+    }
+    return (int)c;
+}

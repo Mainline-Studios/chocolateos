@@ -9,6 +9,7 @@
 #include <choc/pit.h>
 #include <choc/keyboard.h>
 #include <choc/mouse.h>
+#include <choc/ps2.h>
 #include <choc/pmm.h>
 #include <choc/shell.h>
 #include <choc/cxx.h>
@@ -90,6 +91,7 @@ void kmain(void) {
     pit_init(100);
     keyboard_init();
     mouse_init();
+    ps2_init();
     irq_enable();
 
     cxx_call_constructors();

@@ -3,6 +3,7 @@
 #include <choc/pit.h>
 #include <choc/keyboard.h>
 #include <choc/mouse.h>
+#include <choc/ps2.h>
 #include <choc/kprintf.h>
 #include <choc/io.h>
 
@@ -91,7 +92,7 @@ void interrupt_dispatch(struct interrupt_frame *frame) {
         return;
     }
     if (frame->vector == 33) {
-        keyboard_irq();
+        ps2_irq();
         pic_eoi(1);
         return;
     }
@@ -100,7 +101,7 @@ void interrupt_dispatch(struct interrupt_frame *frame) {
         return;
     }
     if (frame->vector == 44) {
-        mouse_irq();
+        ps2_irq();
         pic_eoi(12);
         return;
     }
