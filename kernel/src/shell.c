@@ -8,6 +8,8 @@
 #include <choc/io.h>
 #include <choc/types.h>
 #include <choc/gui.h>
+#include <choc/setup.h>
+#include <choc/keys.h>
 
 static void prompt(void) {
     kprintf("choc> ");
@@ -20,7 +22,7 @@ static void cmd_help(void) {
     kprintf("  clear    clear the screen\n");
     kprintf("  mem      dump the memory map\n");
     kprintf("  ticks    PIT tick counter\n");
-    kprintf("  choc     start the graphical desktop\n");
+    kprintf("  choc     Preview setup wizard, then the desktop\n");
     kprintf("  reboot   triple-fault reboot (QEMU)\n");
 }
 
@@ -58,9 +60,10 @@ static void run_line(char *line) {
     } else if (strcmp(line, "ticks") == 0) {
         kprintf("%llu\n", pit_ticks());
     } else if (strcmp(line, "choc") == 0) {
-        kprintf("starting desktop...\n");
+        kprintf("starting Preview setup...\n");
+        setup_run();
         gui_run();
-        kprintf("back at the terminal. type 'choc' to open the GUI again.\n");
+        kprintf("back at the terminal. type 'choc' or press F1/arrows to open again.\n");
     } else if (strcmp(line, "reboot") == 0) {
         cmd_reboot();
     } else {
@@ -71,12 +74,18 @@ static void run_line(char *line) {
 void shell_run(void) {
     char line[128];
     uint32_t len = 0;
-    kprintf("\nType 'choc' for the desktop, or 'help' for commands.\n");
+    kprintf("\nType 'choc' for Preview setup, or press F1 / arrow keys if typing fails.\n");
     prompt();
     for (;;) {
         __asm__ volatile("hlt");
         int c;
         while ((c = keyboard_getchar()) >= 0) {
+            if (len == 0 && (c == KEY_F1 || c == KEY_UP || c == KEY_DOWN || c == KEY_RIGHT || c == KEY_LEFT)) {
+                kprintf("choc\n");
+                run_line("choc");
+                prompt();
+                continue;
+            }
             if (c == '\n') {
                 kprintf("\n");
                 line[len] = '\0';

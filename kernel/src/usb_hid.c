@@ -1,5 +1,6 @@
 #include <choc/usb.h>
 #include <choc/keyboard.h>
+#include <choc/keys.h>
 #include <choc/mouse.h>
 #include <choc/types.h>
 
@@ -38,7 +39,29 @@ void usb_hid_boot_keyboard(const uint8_t *report, int len) {
         if (was) {
             continue;
         }
-        if (k < 128) {
+        if (k == 0x4F) {
+            keyboard_push_key(KEY_RIGHT);
+        } else if (k == 0x50) {
+            keyboard_push_key(KEY_LEFT);
+        } else if (k == 0x51) {
+            keyboard_push_key(KEY_DOWN);
+        } else if (k == 0x52) {
+            keyboard_push_key(KEY_UP);
+        } else if (k == 0x3A) {
+            keyboard_push_key(KEY_F1);
+        } else if (k == 0x3B) {
+            keyboard_push_key(KEY_F2);
+        } else if (k == 0x4A) {
+            keyboard_push_key(KEY_HOME);
+        } else if (k == 0x4D) {
+            keyboard_push_key(KEY_END);
+        } else if (k == 0x4B) {
+            keyboard_push_key(KEY_PGUP);
+        } else if (k == 0x4E) {
+            keyboard_push_key(KEY_PGDN);
+        } else if (k == 0x4C) {
+            keyboard_push_key(KEY_DEL);
+        } else if (k < 128) {
             char c = shift ? hid_shift[k] : hid_keys[k];
             if (c) {
                 keyboard_push(c);

@@ -73,6 +73,7 @@ iso: $(KERNEL) $(LIMINE_DIR)/limine.h
 	$(LIMINE_DIR)/limine bios-install $(ISO)
 
 QEMU_FLAGS := -m 256M -serial stdio -no-reboot -no-shutdown \
+	-machine pc,i8042=off \
 	-device usb-ehci,id=ehci \
 	-device qemu-xhci,id=xhci \
 	-device usb-kbd,bus=xhci.0 \

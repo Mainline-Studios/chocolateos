@@ -1,4 +1,5 @@
 #include <choc/pit.h>
+#include <choc/usb.h>
 #include <choc/io.h>
 
 #define PIT_CH0 0x40
@@ -17,6 +18,7 @@ void pit_init(uint32_t hz) {
 
 void pit_on_irq(void) {
     ticks++;
+    usb_poll();
 }
 
 uint64_t pit_ticks(void) {

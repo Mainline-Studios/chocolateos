@@ -14,6 +14,7 @@
 #include <choc/pmm.h>
 #include <choc/shell.h>
 #include <choc/cxx.h>
+#include <choc/settings.h>
 #include <limine.h>
 
 __attribute__((used, section(".requests_start_marker")))
@@ -95,6 +96,7 @@ void kmain(void) {
     ps2_init();
     irq_enable();
     usb_init();
+    settings_init();
 
     cxx_call_constructors();
     cxx_banner();

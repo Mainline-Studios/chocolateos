@@ -8,6 +8,14 @@
 #define R32(p) (*(volatile uint32_t *)(p))
 #define R64(p) (*(volatile uint64_t *)(p))
 #define RING 32
+#define TRB_NORMAL  1u
+#define TRB_SETUP   2u
+#define TRB_DATA    3u
+#define TRB_STATUS  4u
+#define TRB_LINK    6u
+#define TRB_IOC     (1u << 5)
+#define TRB_ISP     (1u << 2)
+#define TRB_IDT     (1u << 6)
 
 typedef struct {
     uint64_t ptr;
@@ -74,13 +82,13 @@ static void ring_init(struct ring *r) {
     r->i = 0;
     r->cycle = 1;
     r->trb[RING - 1].ptr = pmm_to_phys(r->trb);
-    r->trb[RING - 1].ctrl = (6u << 10) | (1u << 1) | 1u;
+    r->trb[RING - 1].ctrl = (TRB_LINK << 10) | (1u << 1) | 1u;
 }
 
 static trb_t *ring_place(struct ring *r) {
     if (r->i >= RING - 1) {
         r->trb[RING - 1].ptr = pmm_to_phys(r->trb);
-        r->trb[RING - 1].ctrl = (6u << 10) | (1u << 1) | r->cycle;
+        r->trb[RING - 1].ctrl = (TRB_LINK << 10) | (1u << 1) | r->cycle;
         r->cycle ^= 1;
         r->i = 0;
     }
@@ -88,6 +96,14 @@ static trb_t *ring_place(struct ring *r) {
     memset(t, 0, sizeof(*t));
     r->i++;
     return t;
+}
+
+static void hid_arm(struct hid_ep *h) {
+    trb_t *n = ring_place(&h->ring);
+    n->ptr = pmm_to_phys(h->buf);
+    n->status = 8;
+    n->ctrl = TRB_IOC | TRB_ISP | (TRB_NORMAL << 10) | h->ring.cycle;
+    db[h->slot] = (uint32_t)h->dci;
 }
 
 static void process_events(void) {
@@ -106,23 +122,20 @@ static void process_events(void) {
         } else if (type == 32) {
             last_xfer_cc = (int)((t->status >> 24) & 0xFF);
             last_xfer_slot = (int)((t->ctrl >> 24) & 0xFF);
+            uint32_t epid = (t->ctrl >> 16) & 0x1F;
             uint32_t code = (uint32_t)last_xfer_cc;
-            if (code == 1 || code == 13) {
-                for (int i = 0; i < 8; i++) {
-                    if (!hid[i].used || hid[i].slot != last_xfer_slot) {
-                        continue;
-                    }
+            for (int i = 0; i < 8; i++) {
+                if (!hid[i].used || hid[i].slot != last_xfer_slot || hid[i].dci != (int)epid) {
+                    continue;
+                }
+                if (code == 1 || code == 13) {
                     if (hid[i].kind == 1) {
                         usb_hid_boot_keyboard(hid[i].buf, 8);
                     } else {
                         usb_hid_boot_mouse(hid[i].buf, 8);
                     }
-                    trb_t *n = ring_place(&hid[i].ring);
-                    n->ptr = pmm_to_phys(hid[i].buf);
-                    n->status = 8;
-                    n->ctrl = (1u << 5) | (1u << 2) | (4u << 10) | hid[i].ring.cycle;
-                    db[hid[i].slot] = (uint32_t)hid[i].dci;
                 }
+                hid_arm(&hid[i]);
             }
         }
         ev_i++;
@@ -166,18 +179,18 @@ static int control_xfer(int slot, uint8_t bm, uint8_t req, uint16_t value, uint1
     trb_t *s = ring_place(&ep0_ring[slot]);
     memcpy(&s->ptr, setup, 8);
     s->status = 8;
-    s->ctrl = (2u << 10) | (1u << 6) | (trt << 16) | ep0_ring[slot].cycle;
+    s->ctrl = (TRB_SETUP << 10) | TRB_IDT | (trt << 16) | ep0_ring[slot].cycle;
 
     if (len) {
         trb_t *d = ring_place(&ep0_ring[slot]);
         d->ptr = pmm_to_phys(data);
         d->status = len;
-        d->ctrl = (3u << 10) | ((in ? 1u : 0u) << 16) | ep0_ring[slot].cycle;
+        d->ctrl = (TRB_DATA << 10) | ((in ? 1u : 0u) << 16) | ep0_ring[slot].cycle;
     }
 
     trb_t *st = ring_place(&ep0_ring[slot]);
     uint32_t dir = (len == 0 || !in) ? 1u : 0u;
-    st->ctrl = (4u << 10) | (1u << 5) | (dir << 16) | ep0_ring[slot].cycle;
+    st->ctrl = (TRB_STATUS << 10) | TRB_IOC | (dir << 16) | ep0_ring[slot].cycle;
 
     last_xfer_cc = 0;
     db[slot] = 1;
@@ -262,11 +275,7 @@ static int configure_hid(int slot, int speed, uint8_t *cfg, int cfglen) {
         return 0;
     }
 
-    trb_t *n = ring_place(&h->ring);
-    n->ptr = pmm_to_phys(h->buf);
-    n->status = 8;
-    n->ctrl = (1u << 5) | (1u << 2) | (4u << 10) | h->ring.cycle;
-    db[h->slot] = (uint32_t)h->dci;
+    hid_arm(h);
     kprintf("xhci hid %s slot %d\n", h->kind == 1 ? "keyboard" : "mouse", slot);
     return 1;
 }

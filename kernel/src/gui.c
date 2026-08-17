@@ -7,9 +7,8 @@
 #include <choc/string.h>
 #include <choc/types.h>
 #include <choc/io.h>
+#include <choc/settings.h>
 
-#define COL_WALL_TOP  0x5C3317
-#define COL_WALL_BOT  0x1A0C06
 #define COL_BAR       0x3A2214
 #define COL_BAR_HI    0x6B4228
 #define COL_CREAM     0xF3E5D0
@@ -52,15 +51,26 @@ static int hit(int mx, int my, int x, int y, int w, int h) {
 }
 
 static void mix_fill_wallpaper(void) {
+    uint32_t top = settings_wall_top();
+    uint32_t bot = settings_wall_bot();
     uint32_t h = gfx_height();
     uint32_t w = gfx_width();
+    int style = settings_get()->wallpaper;
     for (uint32_t y = 0; y < h; y++) {
-        uint32_t t = (y * 256) / (h ? h : 1);
-        uint32_t r = ((COL_WALL_TOP >> 16) & 0xFF) * (256 - t) + ((COL_WALL_BOT >> 16) & 0xFF) * t;
-        uint32_t g = ((COL_WALL_TOP >> 8) & 0xFF) * (256 - t) + ((COL_WALL_BOT >> 8) & 0xFF) * t;
-        uint32_t b = (COL_WALL_TOP & 0xFF) * (256 - t) + (COL_WALL_BOT & 0xFF) * t;
+        uint32_t t = style == 1 ? 0 : (y * 256) / (h ? h : 1);
+        uint32_t r = ((top >> 16) & 0xFF) * (256 - t) + ((bot >> 16) & 0xFF) * t;
+        uint32_t g = ((top >> 8) & 0xFF) * (256 - t) + ((bot >> 8) & 0xFF) * t;
+        uint32_t b = (top & 0xFF) * (256 - t) + (bot & 0xFF) * t;
         uint32_t c = ((r / 256) << 16) | ((g / 256) << 8) | (b / 256);
+        if (style == 2 && (y / 16) % 2 == 0) {
+            c = top;
+        }
         gfx_fill(0, (int)y, (int)w, 1, c);
+        if (style == 3 && (y % 20) == 10) {
+            for (uint32_t x = 10; x < w; x += 20) {
+                gfx_fill((int)x, (int)y, 3, 3, COL_CREAM);
+            }
+        }
     }
 }
 
@@ -135,11 +145,13 @@ static void draw_about_body(void) {
 static void redraw(struct mouse_state m) {
     int bar_y = (int)gfx_height() - BAR_H;
     mix_fill_wallpaper();
-    gfx_text_trans(16, 16, "ChocolateOS", COL_CREAM);
+    gfx_text_trans(16, 16, "ChocolateOS Preview", COL_CREAM);
     gfx_text_trans(16, 34, "click an icon or the Choc button", COL_ICON);
 
-    draw_icon(32, 80, "Notes");
-    draw_icon(32, 160, "About");
+    if (settings_get()->desktop_icons) {
+        draw_icon(32, 80, "Notes");
+        draw_icon(32, 160, "About");
+    }
 
     if (about_open && focus != WIN_ABOUT) {
         draw_window(about_x, about_y, about_w, about_h, "About", 0);
@@ -263,11 +275,11 @@ static void on_click(int mx, int my) {
         return;
     }
 
-    if (hit(mx, my, 32, 80, 48, 64)) {
+    if (settings_get()->desktop_icons && hit(mx, my, 32, 80, 48, 64)) {
         open_notes();
         return;
     }
-    if (hit(mx, my, 32, 160, 48, 64)) {
+    if (settings_get()->desktop_icons && hit(mx, my, 32, 160, 48, 64)) {
         open_about();
         return;
     }

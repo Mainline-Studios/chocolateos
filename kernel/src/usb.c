@@ -4,6 +4,8 @@
 #include <choc/kprintf.h>
 #include <choc/types.h>
 
+static int usb_started;
+
 static void on_pci(uint8_t bus, uint8_t slot, uint8_t func, uint16_t vendor, uint16_t device,
                    uint8_t classc, uint8_t subclass, uint8_t prog, void *user) {
     (void)vendor;
@@ -30,9 +32,13 @@ static void on_pci(uint8_t bus, uint8_t slot, uint8_t func, uint16_t vendor, uin
 void usb_init(void) {
     kprintf("scanning USB 2.0 (EHCI) and USB 3.x (xHCI)...\n");
     pci_scan(on_pci, 0);
+    usb_started = 1;
 }
 
 void usb_poll(void) {
+    if (!usb_started) {
+        return;
+    }
     xhci_poll();
     ehci_poll();
 }
