@@ -44,3 +44,6 @@ kernel/src           C / C++ / assembly
 ## Next pieces worth adding
 
 Paging of your own (Limine already identity-maps via HHDM), a real physical allocator, heap, ACPI/APIC, a VFS, and user-mode processes.
+
+## Source
+Yeah, it's open source. Duh.
